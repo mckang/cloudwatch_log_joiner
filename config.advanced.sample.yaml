@@ -1,0 +1,36 @@
+log_group_name: "/aws/lambda/my-service-logs"
+extract_pattern: "ERROR"
+output_file: "output/final_analysis_report.csv"
+
+analysis_steps:
+  - name: "errors"
+    query: |
+      fields traceId
+      | filter @message like /%s/
+      | stats count() as error_count by traceId
+    save_as: "output/temp_errors.csv"
+
+  - name: "all_logs"
+    query: |
+      fields @timestamp, @message, traceId, userId, level
+      | filter ispresent(traceId)
+    save_as: "output/temp_all_logs.csv"
+
+final_join_sqls:
+  - name: "error_details"
+    query:
+      - |
+        SELECT a."@timestamp", a.traceId, a.userId, a.level, e.error_count, a."@message"
+        FROM all_logs a
+        JOIN errors e ON a.traceId = e.traceId
+      - |
+        SELECT *
+        FROM __input__
+        ORDER BY traceId ASC, "@timestamp" ASC
+    save_as: "output/error_details.csv"
+  - name: "error_rank"
+    query: |
+      SELECT traceId, error_count
+      FROM errors
+      ORDER BY error_count DESC
+    save_as: "output/error_rank.csv"

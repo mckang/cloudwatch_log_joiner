@@ -1,0 +1,38 @@
+log_group_name: "/aws/lambda/my-service-logs"
+extract_pattern: "ERROR"
+output_file: "output/final_analysis_report.csv"
+
+analysis_steps:
+  - name: "errors"
+    query: |
+      fields traceId
+      | filter @message like /%s/
+      | stats count() by traceId
+    save_as: "output/temp_errors.csv"
+
+  - name: "all_logs"
+    query: |
+      fields @timestamp, @message, traceId, userId, level
+    save_as: "output/temp_all_logs.csv"
+
+# DuckDB Join SQL 그룹들 (각 그룹 결과가 별도 CSV로 생성됨)
+# - key(name): 결과 파일명 prefix. 예: `a` -> `output/a.csv`
+# - value: 문자열 1개 또는 SQL 리스트
+final_join_sqls:
+  - name: "a"
+    query: |
+      SELECT a.*
+      FROM all_logs a
+      JOIN errors e ON a.traceId = e.traceId
+    save_as: "output/a.csv"
+  - name: "b"
+    query:
+      - |
+        SELECT a.traceId, a."@timestamp", a.level
+        FROM all_logs a
+        JOIN errors e ON a.traceId = e.traceId
+      - |
+        SELECT *
+        FROM __input__
+        ORDER BY traceId ASC
+    save_as: "output/b.csv"

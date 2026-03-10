@@ -1,0 +1,18 @@
+log_group_name: "/aws/lambda/my-service-logs"
+extract_pattern: "ERROR"
+output_file: "output/final_analysis_report.csv"
+
+analysis_steps:
+  - name: "errors"
+    query: |
+      fields traceId, @timestamp, @message
+      | filter @message like /%s/
+    save_as: "output/temp_errors.csv"
+
+final_join_sqls:
+  - name: "basic_result"
+    query: |
+      SELECT *
+      FROM errors
+      ORDER BY "@timestamp" ASC
+    save_as: "output/basic_result.csv"

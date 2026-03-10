@@ -1,0 +1,24 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Local artifacts
+temp_*.csv
+temp_*.json
+final_analysis_report.csv
+output/
+
+config.yaml

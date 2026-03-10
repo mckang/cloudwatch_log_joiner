@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cloudwatch-analysis"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.42.64",
+    "duckdb>=1.5.0",
+    "pandas>=3.0.1",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+]
+
+[project.scripts]
+logjoiner = "logjoiner.main:main"
+
+[dependency-groups]
+dev = [
+    "hatchling>=1.27.0",
+    "mypy>=1.19.1",
+    "pytest>=9.0.2",
+    "ruff>=0.15.5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/logjoiner"]
